@@ -21,8 +21,10 @@ if tokenizer.pad_token is None:
 # Move the model to the GPU if available
 model = model.to(device)
 
-# Convert your tokens to tensors
-train_tokens = [torch.tensor(tokenizer.encode(tokens)) for tokens in get_train_tokens()]
+# The issue in your code is that the length of your input sequences might be exceeding the maximum sequence length that the GPT-2 model can handle (1024 tokens). To fix this, you need to ensure that your input sequences do not exceed this limit during the tokenization process.
+
+# Convert your tokens to tensors and pad the sequences
+train_tokens = [torch.tensor(tokenizer.encode(tokens, truncation=True, padding='max_length', max_length=model.config.max_position_embeddings)) for tokens in get_train_tokens()]
 
 # Pad the sequences
 train_tokens = pad_sequence(train_tokens, batch_first=True, padding_value=tokenizer.pad_token_id)
@@ -33,11 +35,11 @@ input_ids = train_tokens
 # Create attention_mask
 attention_mask = input_ids != tokenizer.pad_token_id
 
-# Convert your labels to tensors
-labels = [torch.tensor(label) for label in get_train_labels()]
+# Convert your labels to tensors and pad them to match the length of your input sequences
+labels = [torch.tensor(label + [-100]*(model.config.max_position_embeddings-len(label))) for label in get_train_labels()]
 
 # Pad the labels
-labels = pad_sequence(labels, batch_first=True, padding_value=0)
+labels = pad_sequence(labels, batch_first=True, padding_value=-100)
 
 # Create a TensorDataset from the inputs and labels
 dataset = TensorDataset(input_ids, attention_mask, labels)
@@ -64,6 +66,9 @@ for epoch in range(epochs):
         print(input_ids.shape)
         print(attention_mask.shape)
         print(labels.shape)
+
+        print(f"Max position embeddings: {model.config.max_position_embeddings}")
+        print(f"Max input sequence length: {input_ids.shape[1]}")
 
         optim.zero_grad()
         outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
