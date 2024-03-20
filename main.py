@@ -6,10 +6,12 @@ import torch
 
 # Check if a GPU is available and if not, use a CPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Device: ", device.type)
 
 # Load pre-trained model and tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 model = GPT2ForTokenClassification.from_pretrained('gpt2')
+print("Model and tokenizer loaded")
 
 # Set the padding token if it's not already set
 if tokenizer.pad_token is None:
