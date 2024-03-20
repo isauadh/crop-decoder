@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from transformers import AdamW
 from dataset import get_train_tokens, get_train_labels
 import torch
+from torch.nn.utils.rnn import pad_sequence
 
 # Check if a GPU is available and if not, use a CPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -20,22 +21,26 @@ if tokenizer.pad_token is None:
 # Move the model to the GPU if available
 model = model.to(device)
 
-# Get your training tokens & labels
-train_tokens = get_train_tokens()
-print(train_tokens[0])
+# Convert your tokens to tensors
+train_tokens = [torch.tensor(tokenizer.encode(tokens)) for tokens in get_train_tokens()]
 
-train_labels = get_train_labels()
-print(train_labels[0])
+# Pad the sequences
+train_tokens = pad_sequence(train_tokens, batch_first=True, padding_value=tokenizer.pad_token_id)
 
-# Preprocess your tokens
-inputs = tokenizer(train_tokens, truncation=True, padding=True, is_split_into_words=True, return_tensors='pt')
+# Your padded sequences are your input_ids
+input_ids = train_tokens
+
+# Create attention_mask
+attention_mask = input_ids != tokenizer.pad_token_id
 
 # Convert your labels to tensors
-from torch.nn.utils.rnn import pad_sequence
-labels = pad_sequence([torch.tensor(labels) for labels in train_labels], batch_first=True, padding_value=-100)
+labels = [torch.tensor(label) for label in get_train_labels()]
+
+# Pad the labels
+labels = pad_sequence(labels, batch_first=True, padding_value=0)
 
 # Create a TensorDataset from the inputs and labels
-dataset = TensorDataset(inputs['input_ids'], inputs['attention_mask'], labels)
+dataset = TensorDataset(input_ids, attention_mask, labels)
 
 # Create a DataLoader
 data_loader = DataLoader(dataset, batch_size=16)
@@ -55,6 +60,10 @@ for epoch in range(epochs):
         input_ids = batch[0].to(device)
         attention_mask = batch[1].to(device)
         labels = batch[2].to(device)
+
+        print(input_ids.shape)
+        print(attention_mask.shape)
+        print(labels.shape)
 
         optim.zero_grad()
         outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
