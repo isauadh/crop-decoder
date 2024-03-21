@@ -36,10 +36,10 @@ input_ids = train_tokens
 attention_mask = input_ids != tokenizer.pad_token_id
 
 # Convert your labels to tensors and pad them to match the length of your input sequences
-labels = [torch.tensor(label[:model.config.max_position_embeddings] + [-100]*(model.config.max_position_embeddings-len(label))) for label in get_train_labels()]
+labels = [torch.tensor(label[:model.config.max_position_embeddings] + [0]*(model.config.max_position_embeddings-len(label))) for label in get_train_labels()]
 
 # Pad the labels
-labels = pad_sequence(labels, batch_first=True, padding_value=-100)
+labels = pad_sequence(labels, batch_first=True, padding_value=0)
 
 # Create a TensorDataset from the inputs and labels
 dataset = TensorDataset(input_ids, attention_mask, labels)
@@ -69,8 +69,6 @@ for epoch in range(epochs):
 
         print(f"Max position embeddings: {model.config.max_position_embeddings}")
         print(f"Max input sequence length: {input_ids.shape[1]}")
-
-        exit()
 
         optim.zero_grad()
         outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
