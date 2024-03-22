@@ -61,7 +61,7 @@ labels_padded = pad_sequence(labels, batch_first=True, padding_value=-100)
 dataset = TensorDataset(input_ids, attention_masks, labels_padded)
 
 # Create a DataLoader
-data_loader = DataLoader(dataset, batch_size=16)
+data_loader = DataLoader(dataset, batch_size=8)
 
 # Fine-tune the model
 model.train()
