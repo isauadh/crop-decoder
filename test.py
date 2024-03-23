@@ -34,7 +34,7 @@ sliding_test_tokens = [sliding_window(tokenizer.encode(tokens), 1024) for tokens
 sliding_test_tokens = [item for sublist in sliding_test_tokens for item in sublist]
 
 # Print the length of the longest sequence in train_tokens
-print(max(len(tokens) for tokens in sliding_test_tokens))
+# print(max(len(tokens) for tokens in sliding_test_tokens))
 
 # Convert the tokens to tensors
 test_tokens = [torch.tensor(tokens) for tokens in sliding_test_tokens]

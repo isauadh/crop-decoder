@@ -26,6 +26,14 @@ validation_dataset = concatenate_datasets([english_validation_dataset, spanish_v
 # Concatenate the 'test' splits of the datasets
 test_dataset = concatenate_datasets([english_test_dataset, spanish_test_dataset, dutish_test_dataset])
 
+def get_test_tokens():
+    tokens = [tokens for tokens in test_dataset["tokens"] if tokens]
+    return tokens
+
+def get_test_labels():
+    labels = [labels for labels in test_dataset["ner_tags"] if labels]
+    return labels
+
 def get_train_tokens():
     return [tokens for tokens in train_dataset["tokens"] if tokens]
 
